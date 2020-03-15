@@ -2,7 +2,6 @@
 
 #include <icomport.h>
 #include <ATimer.h>
-#include <keywords.h>
 
 namespace Arduino {
 
@@ -17,7 +16,7 @@ public:
 
 private:
     ATimer _connectionTimer;
-    char message[maxMessageLength] = {0};
+    char *message = nullptr;
 };
 
 } // namespace Arduino

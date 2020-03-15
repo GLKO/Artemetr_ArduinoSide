@@ -1,5 +1,6 @@
 #include "comport.h"
 #include <Arduino.h>
+#include <keywords.h>
 
 namespace Arduino
 {
@@ -26,13 +27,13 @@ void ComPort::loopCheck()
     static bool connected = false;
 
     if ( connected ) {
-        if ( Serial.available < 4)
+        if ( Serial.available() < 4)
             return;
 
-        String msg = Serial.readString;
+        String msg = Serial.readString();
 
         if (msg.length() < maxMessageLength) {
-            strcpy(message, msg.c_str);  //если сильно хочется, то можно не копировать
+            strcpy(message, msg.c_str());  //если сильно хочется, то можно не копировать
             notifySubscribers();
         }
     } else {
