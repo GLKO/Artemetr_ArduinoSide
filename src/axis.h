@@ -5,7 +5,7 @@ class Axis
 {
 public:
     Axis(uint32_t acceleration, uint32_t startSpeed);
-
+    // need home feature, endstops and maxPos
     void moveTo(uint32_t newPos);
     void loopCheck();
 
@@ -21,15 +21,18 @@ private:
 
     void reversCheck();
     bool _revers = false;
-
-    void accelerationCheck();
-    bool acceleration = true;
-    uint32_t _period = 0,
-             _startBreakingPos = 0;
+    bool rightDirection();
 
     void step();
     uint32_t _currentPos = 0;
 
+    void accelerationCheck();
+    bool _accelerate = true;
+    void calculateNewSpeed();
+    uint32_t _period = 0;
+
+    void home();
+    
     // HARDWARE PARAMETERS
     short _pinPulse = 0,
           _pinDirection = 0,

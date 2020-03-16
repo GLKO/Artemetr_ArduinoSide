@@ -4,13 +4,12 @@
 
 Axis::Axis(uint32_t acceleration, uint32_t startSpeed)
 {
-    _currentSpeed = (_currentSpeed + sqrt(_currentSpeed * _currentSpeed + 4 * _acceleration)) / 2;
-    // p = 1000000 / V;
+    home();
 }
 
 void Axis::moveTo(uint32_t newPos)
 {
-
+    _targetPos = newPos;
 }
 
 void Axis::loopCheck()
@@ -20,16 +19,12 @@ void Axis::loopCheck()
 
     if ( !timeCheck() )
         return;
+        
     reversCheck();
-    accelerationCheck();
     step();
-    
 
-    if (_currentPos < _targetPos) {
-
-    } else {
-
-    }
+    accelerationCheck();
+    calculateNewSpeed();
 }
 
 bool Axis::timeCheck()
@@ -47,20 +42,11 @@ void Axis::reversCheck()
     if (_currentSpeed > _startSpeed)
         return;
 
-    if ( (!_revers) && (_targetPos > _currentPos) )
-        return;
-    else if ( _revers && (_targetPos < _currentPos) )
+    if ( rightDirection() )
         return;
 
     _revers = !_revers;
-    digitalWrite(_pinDirection, _revers); //WARNING
-
-    _startBreakingPos = (_targetPos - _currentPos)/2;
-}
-
-void Axis::accelerationCheck()
-{
-
+    digitalWrite(_pinDirection, _revers); //WARNING! may be revers plug
 }
 
 void Axis::step()
@@ -72,4 +58,45 @@ void Axis::step()
         --_currentPos;
     else
         ++_currentPos;
+}
+
+bool Axis::rightDirection()
+{
+    if ( (!_revers) && (_targetPos > _currentPos) )
+        return true;
+    else if ( _revers && (_targetPos < _currentPos) )
+        return true;
+    
+    return false;
+}
+
+void Axis::accelerationCheck()
+{
+    if ( !rightDirection() && _accelerate){
+        _accelerate = false;
+        return;
+    }
+
+    uint32_t leftDistanse = abs( _targetPos - _currentPos );
+    uint32_t breakingDistance = _currentSpeed*_currentSpeed/_acceleration/2;
+
+    if ( leftDistanse > breakingDistance )
+        _accelerate = true;
+    else
+        _accelerate = false;
+}
+
+void Axis::calculateNewSpeed()
+{
+    if ( _accelerate )
+        _currentSpeed = sqrt( _currentSpeed*_currentSpeed + 2*_acceleration );
+    else
+        _currentSpeed = sqrt( _currentSpeed*_currentSpeed - 2*_acceleration );
+
+    _period = 1000000/_currentSpeed;
+}
+
+void Axis::home()
+{
+
 }
