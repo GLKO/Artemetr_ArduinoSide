@@ -1,8 +1,8 @@
 #include <Arduino.h>
-#include <AStepper.h>
 
 #include "comport.h"
 #include "camera.h"
+#include "axis.h"
 
 // #define TEST
 
@@ -18,14 +18,16 @@ const uint8_t xPulse = 0,
 
 using namespace Arduino;
 
-AStepper xMotor(1,2,3),
-         yMotor(4,5,6);
+Axis xAxis(30,10,80),
+     yAxis(30,10,80);
 
 ComPort port;
-Camera camera(&xMotor, &yMotor);
+Camera camera(&xAxis, &yAxis);
 
 void setup()
 {
+    // Serial.begin(9600);
+    port.init();
     port.subscribe(&camera);
     camera.setComPort(&port);
 }

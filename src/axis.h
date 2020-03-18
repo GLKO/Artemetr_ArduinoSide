@@ -4,9 +4,10 @@
 class Axis 
 {
 public:
-    Axis(uint32_t acceleration, uint32_t startSpeed);
+    Axis(uint32_t acceleration, uint32_t startSpeed, short stepsPerMm);
     // need home feature, endstops and maxPos
-    void moveTo(uint32_t newPos);
+    void move(uint32_t newPos);
+    int currentPos();
     void loopCheck();
 
 private:
@@ -37,5 +38,5 @@ private:
     short _pinPulse = 0,
           _pinDirection = 0,
           _pinSleep = 0,
-          _sepsPerMm = 0;
+          _stepsPerMm = 0;
 };

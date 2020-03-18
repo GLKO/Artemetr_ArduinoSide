@@ -1,5 +1,5 @@
 #include "camera.h"
-#include <AStepper.h>
+#include "axis.h"
 #include <icomport.h>
 #include <keywords.h>
 #include <Arduino.h>
@@ -8,70 +8,84 @@
 namespace Arduino
 {
 
-Camera::Camera(AStepper *xMotor, AStepper *yMotor)
-    : _xMotor(xMotor),
-      _yMotor(yMotor)
+Camera::Camera(Axis *xAxis, Axis *yAxis)
+    : _xAxis(xAxis),
+      _yAxis(yAxis)
 {
-    _currentPosition.X = -1;
-    _currentPosition.Y = -1;
-    _targetPosition.X = -1;
-    _targetPosition.Y = -1;
-    _positionUpdateTimer.setPeriod(200);
+    // _currentPosition.X = -1;
+    // _currentPosition.Y = -1;
+    // _targetPosition.X = -1;
+    // _targetPosition.Y = -1;
+    _positionUpdateTimer.setPeriod(1000);
     _positionUpdateTimer.start();
+}
+
+void Camera::setComPort(IComPort *comPort)
+{
+    _comPort = comPort;
 }
 
 void Camera::move(Point newPos)
 {
-    _targetPosition = newPos;
+    _xAxis->move(newPos.X);
+    _yAxis->move(newPos.Y);
+    // _targetPosition = newPos;
 }
 
 void Camera::moveX(int x)
 {
-    _targetPosition.X = x;
+    // _targetPosition.X = x;
 }
 
 void Camera::moveY(int y)
 {
-    _targetPosition.Y = y;
+    // _targetPosition.Y = y;
 }
 
 int Camera::currentX() const
 {
-    return _currentPosition.X;
+    // return _currentPosition.X;
 }
 
 int Camera::currentY() const
 {
-    return _currentPosition.Y;
+    // return _currentPosition.Y;
 }
 
 Point Camera::currentPos() const
 {
-    return _currentPosition;
+    // return _currentPosition;
 }
 
 void Camera::loopCheck()
 {
+    _xAxis->loopCheck();
+    _yAxis->loopCheck();
+
     if (_positionUpdateTimer.check())
     {
         String message(currentPosition);
         message += ' ';
-        message += String(_currentPosition.X);
+        message += String(_xAxis->currentPos());
         message += ' ';
-        message += String(_currentPosition.Y);
+        message += String(_yAxis->currentPos());
 
-        _comPort->sendMessage(message.c_str());
+        if ( _comPort != nullptr )
+            _comPort->sendMessage(message.c_str());
     }
-    // motor control here mb
 }
 
-void Camera::update()
+void Camera::updateSub()
 {
     char msg[maxMessageLength];
     strcpy(msg, _comPort->readMessage());
     char* command = msg;
     char* firstArg = strtok(msg, " ");
     char* secondArg = strtok(NULL, " ");
+
+    Serial.println(command);
+    Serial.println(firstArg);
+    Serial.println(secondArg);
 
     if ( strcmp(command, moveTo) ) {
         Point newPos;

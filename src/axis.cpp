@@ -2,14 +2,22 @@
 #include <math.h>
 #include <Arduino.h>
 
-Axis::Axis(uint32_t acceleration, uint32_t startSpeed)
+Axis::Axis(uint32_t acceleration, uint32_t startSpeed, short stepsPerMm)
+    :_acceleration(acceleration),
+    _startSpeed(startSpeed),
+    _stepsPerMm(stepsPerMm)
 {
     home();
 }
 
-void Axis::moveTo(uint32_t newPos)
+void Axis::move(uint32_t newPos)
 {
-    _targetPos = newPos;
+    _targetPos = newPos*_stepsPerMm;
+}
+
+int Axis::currentPos()
+{
+    return _currentPos / _stepsPerMm;
 }
 
 void Axis::loopCheck()
@@ -46,13 +54,13 @@ void Axis::reversCheck()
         return;
 
     _revers = !_revers;
-    digitalWrite(_pinDirection, _revers); //WARNING! may be revers plug
+    // digitalWrite(_pinDirection, _revers); //WARNING! may be revers plug
 }
 
 void Axis::step()
 {
-    digitalWrite(_pinPulse, HIGH);
-    digitalWrite(_pinPulse, LOW);
+    // digitalWrite(_pinPulse, HIGH);
+    // digitalWrite(_pinPulse, LOW);
     
     if (_revers)
         --_currentPos;

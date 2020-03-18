@@ -1,20 +1,25 @@
 #include "comport.h"
 #include <Arduino.h>
-#include <keywords.h>
 
 namespace Arduino
 {
 
 ComPort::ComPort()
 {
-    Serial.begin(connnectionSpeed);
     _connectionTimer.setPeriod(1000);
     _connectionTimer.start();
 }
 
+void ComPort::init()
+{
+    Serial.begin(connnectionSpeed);
+    // Serial.begin(9600);
+}
+
 void ComPort::sendMessage(const char *msg)
 {
-    Serial.println(msg);
+    if ( _connected)
+        Serial.println(msg);
 }
 
 const char *ComPort::readMessage()
@@ -24,10 +29,8 @@ const char *ComPort::readMessage()
 
 void ComPort::loopCheck()
 {
-    static bool connected = false;
-
-    if ( connected ) {
-        if ( Serial.available() < 4)
+    if ( _connected ) {
+        if ( Serial.available() < 5)
             return;
 
         String msg = Serial.readString();
@@ -42,7 +45,7 @@ void ComPort::loopCheck()
 
             if (Serial.find(connectRequest)){
                 Serial.println(connectApprove);
-                connected = true;
+                _connected = true;
                 _connectionTimer.stop();
             }
         }
