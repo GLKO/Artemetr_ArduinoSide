@@ -70,8 +70,8 @@ void Camera::loopCheck()
         message += ' ';
         message += String(_yAxis->currentPos());
 
-        if ( _comPort != nullptr )
-            _comPort->sendMessage(message.c_str());
+        // if ( _comPort != nullptr )
+            // _comPort->sendMessage(message.c_str());
     }
 }
 
@@ -79,12 +79,14 @@ void Camera::updateSub()
 {
     char msg[maxMessageLength];
     strcpy(msg, _comPort->readMessage());
-    char* command = msg;
-    char* firstArg = strtok(msg, " ");
+    char* command = strtok(msg, " ");
+    char* firstArg = strtok(NULL, " ");
     char* secondArg = strtok(NULL, " ");
 
-    Serial.println(command);
-    Serial.println(firstArg);
+    Serial.print(command);
+    Serial.print(" ");
+    Serial.print(firstArg);
+    Serial.print(" ");
     Serial.println(secondArg);
 
     if ( strcmp(command, moveTo) ) {

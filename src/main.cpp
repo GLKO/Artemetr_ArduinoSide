@@ -26,7 +26,6 @@ Camera camera(&xAxis, &yAxis);
 
 void setup()
 {
-    // Serial.begin(9600);
     port.init();
     port.subscribe(&camera);
     camera.setComPort(&port);
@@ -34,7 +33,7 @@ void setup()
 
 void loop() {
     port.loopCheck();
-    camera.loopCheck();
+    // camera.loopCheck();
 }
 #else
 
