@@ -6,7 +6,7 @@ namespace Arduino
 
 ComPort::ComPort()
 {
-    _connectionTimer.setPeriod(2000);
+    _connectionTimer.setPeriod(1000);
     _connectionTimer.start();
 }
 
@@ -34,10 +34,14 @@ void ComPort::loopCheck()
         if ( Serial.available() == 0)
             return;
 
-        String msg = Serial.readString();
-        // Serial.println(msg);
+        if (Serial.find(disconnectRequest)){
+            _connected = false;
+            _connectionTimer.start();
+            return;
+        }
 
-        strcpy(message, msg.c_str());  //если сильно хочется, то можно не копировать
+        String msg = Serial.readString();
+        strcpy(message, msg.c_str());
         notifySubscribers();
     } 
     else {
@@ -45,7 +49,6 @@ void ComPort::loopCheck()
             Serial.println(movingCamId);
 
             if (Serial.find(connectRequest)){
-                // Serial.readString();
                 Serial.println(connectApprove);
                 _connected = true;
                 _connectionTimer.stop();

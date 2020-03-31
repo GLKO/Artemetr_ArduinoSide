@@ -3,9 +3,9 @@
 #include <Arduino.h>
 
 Axis::Axis(uint32_t acceleration, uint32_t startSpeed, short stepsPerMm)
-    :_acceleration(acceleration),
-    _startSpeed(startSpeed),
-    _stepsPerMm(stepsPerMm)
+    :_stepsPerMm(stepsPerMm),
+    _acceleration(acceleration * _stepsPerMm),
+    _startSpeed(startSpeed * _stepsPerMm)
 {
     home();
 }
@@ -22,12 +22,15 @@ int Axis::currentPos()
 
 void Axis::loopCheck()
 {
-    if ( _currentPos == _targetPos )
+    if ( _currentPos == _targetPos ) {
+        if ( _currentSpeed != _startSpeed )
+            _currentSpeed = _startSpeed;
         return;
+    }
 
     if ( !timeCheck() )
         return;
-        
+    
     reversCheck();
     step();
 
@@ -80,18 +83,23 @@ bool Axis::rightDirection()
 
 void Axis::accelerationCheck()
 {
-    if ( !rightDirection() && _accelerate){
+    if ( !rightDirection() ){
         _accelerate = false;
         return;
     }
 
-    uint32_t leftDistanse = abs( _targetPos - _currentPos );
-    uint32_t breakingDistance = _currentSpeed*_currentSpeed/_acceleration/2;
-
-    if ( leftDistanse > breakingDistance )
-        _accelerate = true;
+    unsigned long leftDistanse = 0;
+    if ( _currentPos > _targetPos )
+        leftDistanse = _currentPos - _targetPos;
     else
+        leftDistanse = _targetPos - _currentPos;
+
+    auto breakingDistance = _currentSpeed*_currentSpeed/(_acceleration*2);
+
+    if ( leftDistanse <= breakingDistance )
         _accelerate = false;
+    else
+        _accelerate = true;
 }
 
 void Axis::calculateNewSpeed()
@@ -100,7 +108,7 @@ void Axis::calculateNewSpeed()
         _currentSpeed = sqrt( _currentSpeed*_currentSpeed + 2*_acceleration );
     else
         _currentSpeed = sqrt( _currentSpeed*_currentSpeed - 2*_acceleration );
-
+    // Serial.print( static_cast<unsigned long>(_currentSpeed) );
     _period = 1000000/_currentSpeed;
 }
 

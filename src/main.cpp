@@ -18,8 +18,8 @@ const uint8_t xPulse = 0,
 
 using namespace Arduino;
 
-Axis xAxis(30,10,80),
-     yAxis(30,10,80);
+Axis xAxis(40,5,10),
+     yAxis(40,5,10);
 
 ComPort port;
 Camera camera(&xAxis, &yAxis);
@@ -33,7 +33,7 @@ void setup()
 
 void loop() {
     port.loopCheck();
-    // camera.loopCheck();
+    camera.loopCheck();
 }
 #else
 

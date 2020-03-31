@@ -1,9 +1,9 @@
 #pragma once
 
 #include <icamera.h>
-#include <point.h>
 #include <ATimer.h>
 
+struct Point;
 class Axis;
 class IComPort;
 
@@ -29,9 +29,6 @@ public:
 private:
     Axis *_xAxis = nullptr,
          *_yAxis = nullptr;
-
-    // Point _currentPosition,
-        //   _targetPosition;
 
     IComPort *_comPort = nullptr;
     ATimer _positionUpdateTimer;
