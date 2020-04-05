@@ -2,17 +2,46 @@
 #include <math.h>
 #include <Arduino.h>
 
-Axis::Axis(uint32_t acceleration, uint32_t startSpeed, short stepsPerMm)
-    :_stepsPerMm(stepsPerMm),
+Axis::Axis(uint32_t acceleration, uint32_t startSpeed, short pinPulse, short pinDirection, short pinEnabled, short stepsPerMm)
+    :_pinPulse(pinPulse),
+    _pinDirection(pinDirection),
+    _pinEnabled(pinEnabled),
+    _stepsPerMm(stepsPerMm),
     _acceleration(acceleration * _stepsPerMm),
     _startSpeed(startSpeed * _stepsPerMm)
 {
-    home();
+    pinMode( _pinPulse, OUTPUT );
+    pinMode( _pinDirection, OUTPUT );
+    pinMode( _pinEnabled, OUTPUT );
+    digitalWrite( _pinEnabled, HIGH );
+
+    digitalWrite(_pinDirection, _revers);
+}
+
+void Axis::setMax(unsigned mmMaxPos)
+{
+    _maxPos = mmMaxPos * _stepsPerMm;
+}
+
+void Axis::setEnabled(bool enabled)
+{
+    if ( enabled )
+        digitalWrite( _pinEnabled, LOW);
+    else
+        digitalWrite( _pinEnabled, HIGH);
+
+    _isEnabled = enabled;
 }
 
 void Axis::move(uint32_t newPos)
 {
+    if ( !_isEnabled )
+        return;
+
     _targetPos = newPos*_stepsPerMm;
+
+    if (_targetPos > _maxPos)
+        _targetPos = _maxPos;
 }
 
 int Axis::currentPos()
@@ -23,19 +52,17 @@ int Axis::currentPos()
 void Axis::loopCheck()
 {
     if ( _currentPos == _targetPos ) {
-        if ( _currentSpeed != _startSpeed )
-            _currentSpeed = _startSpeed;
+        _currentSpeed = _startSpeed;
         return;
     }
 
-    if ( !timeCheck() )
-        return;
-    
-    reversCheck();
-    step();
+    if ( timeCheck() ) {
+        reversCheck();
+        step();
 
-    accelerationCheck();
-    calculateNewSpeed();
+        accelerationCheck();
+        calculateNewSpeed();
+    }
 }
 
 bool Axis::timeCheck()
@@ -57,18 +84,21 @@ void Axis::reversCheck()
         return;
 
     _revers = !_revers;
-    // digitalWrite(_pinDirection, _revers); //WARNING! may be revers plug
+    digitalWrite(_pinDirection, _revers);
 }
 
 void Axis::step()
 {
-    // digitalWrite(_pinPulse, HIGH);
-    // digitalWrite(_pinPulse, LOW);
+    digitalWrite(_pinPulse, HIGH);
+    digitalWrite(_pinPulse, LOW);
     
-    if (_revers)
-        --_currentPos;
-    else
+    if (_revers ) {
+        if ( _currentPos > 0 )
+            --_currentPos;
+    }
+    else {
         ++_currentPos;
+    }
 }
 
 bool Axis::rightDirection()
@@ -108,7 +138,7 @@ void Axis::calculateNewSpeed()
         _currentSpeed = sqrt( _currentSpeed*_currentSpeed + 2*_acceleration );
     else
         _currentSpeed = sqrt( _currentSpeed*_currentSpeed - 2*_acceleration );
-    // Serial.print( static_cast<unsigned long>(_currentSpeed) );
+
     _period = 1000000/_currentSpeed;
 }
 

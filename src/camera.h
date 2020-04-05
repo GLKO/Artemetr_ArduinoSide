@@ -32,6 +32,8 @@ private:
 
     IComPort *_comPort = nullptr;
     ATimer _positionUpdateTimer;
+
+    bool _isEnabled = false;
 };
 
 } // namespace Arduino

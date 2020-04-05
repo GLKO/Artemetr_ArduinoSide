@@ -8,18 +8,18 @@
 
 #ifndef TEST
 ///// -- HARDWARE SETUP -- /////
-const uint8_t xPulse = 0,
-              xDir = 0,
-              xSleep = 0,
-              yPulse = 0,
-              yDir = 0,
-              ySleep = 0;
+const uint8_t xPulse = 2,
+              xDir = 5,
+              xEnable = 8,
+              yPulse = 3,
+              yDir = 6,
+              yEnable = 8;
 //////////////////////////////
 
 using namespace Arduino;
 
-Axis xAxis(40,5,10),
-     yAxis(40,5,10);
+Axis xAxis(300,1, xPulse, xDir, xEnable, 10),
+     yAxis(300,1, yPulse, yDir, yEnable, 10);
 
 ComPort port;
 Camera camera(&xAxis, &yAxis);
@@ -29,12 +29,27 @@ void setup()
     port.init();
     port.subscribe(&camera);
     camera.setComPort(&port);
+
+    volatile unsigned long start = 0,
+                           end = 0,
+                           delta = 0;
+    while (true){
+        start = micros();
+        port.loopCheck();
+        camera.loopCheck();
+        end = micros();
+
+        delta = end - start;
+        if ( delta > 500 ) {
+            Serial.print("loop takes: ");
+            Serial.println(delta);
+        }
+    }
 }
 
-void loop() {
-    port.loopCheck();
-    camera.loopCheck();
-}
+void loop() {}
+
+
 #else
 
 void setup()

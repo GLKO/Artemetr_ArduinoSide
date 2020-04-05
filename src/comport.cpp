@@ -14,7 +14,7 @@ void ComPort::init()
 {
     Serial.end();
     Serial.begin(connnectionSpeed);
-    Serial.setTimeout(5);
+    Serial.setTimeout(500);
 }
 
 void ComPort::sendMessage(const char *msg)
@@ -30,19 +30,13 @@ const char *ComPort::readMessage()
 
 void ComPort::loopCheck()
 {
+    // volatile auto start = micros();
     if ( _connected ) {
-        if ( Serial.available() == 0)
-            return;
-
-        if (Serial.find(disconnectRequest)){
-            _connected = false;
-            _connectionTimer.start();
-            return;
+        if ( Serial.available() == commandSize ) {
+            Serial.readBytes(message, commandSize);
+            // Serial.println(message);
+            notifySubscribers();
         }
-
-        String msg = Serial.readString();
-        strcpy(message, msg.c_str());
-        notifySubscribers();
     } 
     else {
         if (_connectionTimer.check() ) {
@@ -55,6 +49,9 @@ void ComPort::loopCheck()
             }
         }
     }
+    // volatile auto end = micros();
+    // Serial.print("ComPort::loopCheck takes ");
+    // Serial.println(end-start);
 }
 
 } // namespace Arduino

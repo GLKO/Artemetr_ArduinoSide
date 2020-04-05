@@ -20,7 +20,7 @@ public:
 private:
     bool _connected = false;
     ATimer _connectionTimer;
-    char message[maxMessageLength] = {0};
+    char message[commandSize] = {0};
 };
 
 } // namespace Arduino
