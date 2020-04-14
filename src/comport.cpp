@@ -14,7 +14,7 @@ void ComPort::init()
 {
     Serial.end();
     Serial.begin(connnectionSpeed);
-    Serial.setTimeout(500);
+    Serial.setTimeout(5);
 }
 
 void ComPort::sendMessage(const char *msg)

@@ -1,12 +1,16 @@
 #pragma once
 #include <inttypes.h>
 
+enum EndstopPosition { EndstopAtMin, EndstopAtMax };
+
 class Axis 
 {
 public:
-    Axis(uint32_t acceleration, uint32_t startSpeed, short pinPulse, short pinDirection, short pinEnabled, short stepsPerMm);
-    // need home feature, endstops
-    void setMax(unsigned mmMaxPos);
+    Axis(short stepsPerMm, short pinPulse, short pinDirection, short pinEnabled, short pinEndstop, EndstopPosition endstopPos);
+    void setMaxPos(unsigned mmMaxPos);
+    void setSpeed(int acceleration, int startSpeed, int homeSpeed);
+    void invertDirection();
+    
     void move(uint32_t newPos);
     void setEnabled(bool enabled);
 
@@ -14,26 +18,18 @@ public:
     void loopCheck();
 
 private:
-    // HARDWARE PARAMETERS //
-    short _pinPulse = 0,
-          _pinDirection = 0,
-          _pinEnabled = 0,
-          _stepsPerMm = 0;
-    unsigned long _maxPos = 0;
-    ////////////////////////
-    bool _isEnabled = false;
-    const unsigned long _acceleration = 0;
+    unsigned long _acceleration = 0;
     double _startSpeed = 0;
     double _currentSpeed = 0;
-
-                
              
     bool timeCheck();
     unsigned long _lastTime = 0;
 
     void reversCheck();
+    void setRevers(const bool &revers);
     bool _revers = false;
     bool rightDirection();
+    bool _directionInverted = false;
 
     void step();
     unsigned long _targetPos = 0; 
@@ -44,5 +40,20 @@ private:
     void calculateNewSpeed();
     unsigned long _period = 0;
 
-    void home();
+    void enable();
+    void homeStep();
+    void disable();
+    bool _isEnabled = false;
+    unsigned long _homeSpeed = 0;
+
+
+        // HARDWARE PARAMETERS //
+    short _pinPulse = 0,
+          _pinDirection = 0,
+          _pinEnabled = 0,
+          _pinEndstop = 0,
+          _stepsPerMm = 0;
+    EndstopPosition _endstopPosition = EndstopAtMin;
+    unsigned long _maxPos = 0;
+    ////////////////////////
 };

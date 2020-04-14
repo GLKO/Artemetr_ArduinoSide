@@ -2,41 +2,53 @@
 #include <math.h>
 #include <Arduino.h>
 
-Axis::Axis(uint32_t acceleration, uint32_t startSpeed, short pinPulse, short pinDirection, short pinEnabled, short stepsPerMm)
+Axis::Axis( short stepsPerMm, short pinPulse, short pinDirection, short pinEnabled, short pinEndstop, EndstopPosition endstopPos )
     :_pinPulse(pinPulse),
     _pinDirection(pinDirection),
     _pinEnabled(pinEnabled),
+    _pinEndstop(pinEndstop),
     _stepsPerMm(stepsPerMm),
-    _acceleration(acceleration * _stepsPerMm),
-    _startSpeed(startSpeed * _stepsPerMm)
+    _endstopPosition(endstopPos)
 {
     pinMode( _pinPulse, OUTPUT );
     pinMode( _pinDirection, OUTPUT );
     pinMode( _pinEnabled, OUTPUT );
-    digitalWrite( _pinEnabled, HIGH );
+    pinMode( _pinEndstop, INPUT_PULLUP);
 
-    digitalWrite(_pinDirection, _revers);
+    disable();
 }
 
-void Axis::setMax(unsigned mmMaxPos)
+void Axis::setMaxPos(unsigned mmMaxPos)
 {
     _maxPos = mmMaxPos * _stepsPerMm;
 }
 
-void Axis::setEnabled(bool enabled)
+void Axis::setSpeed( int acceleration, int startSpeed, int homeSpeed )
 {
-    if ( enabled )
-        digitalWrite( _pinEnabled, LOW);
-    else
-        digitalWrite( _pinEnabled, HIGH);
+    _acceleration = acceleration * _stepsPerMm;
+    _startSpeed = startSpeed * _stepsPerMm;
+    _homeSpeed = homeSpeed * _stepsPerMm;
+}
 
-    _isEnabled = enabled;
+void Axis::invertDirection()
+{
+    _directionInverted = !_directionInverted;
+}
+
+void Axis::setEnabled(bool setOn)
+{
+    if ( setOn && !_isEnabled) {
+        enable();
+    }
+    else if ( !setOn && _isEnabled ) {
+        disable();
+    }
 }
 
 void Axis::move(uint32_t newPos)
 {
     if ( !_isEnabled )
-        return;
+        enable();
 
     _targetPos = newPos*_stepsPerMm;
 
@@ -51,6 +63,11 @@ int Axis::currentPos()
 
 void Axis::loopCheck()
 {
+    if ( !_isEnabled ) {
+        homeStep();
+        return;
+    }
+
     if ( _currentPos == _targetPos ) {
         _currentSpeed = _startSpeed;
         return;
@@ -80,11 +97,18 @@ void Axis::reversCheck()
     if (_currentSpeed > _startSpeed)
         return;
 
-    if ( rightDirection() )
-        return;
+    if ( !rightDirection() )
+        _revers = !_revers;
 
-    _revers = !_revers;
-    digitalWrite(_pinDirection, _revers);
+    setRevers(_revers);
+}
+
+void Axis::setRevers(const bool &revers)
+{
+    if ( _directionInverted )
+        digitalWrite(_pinDirection, !revers);
+    else
+        digitalWrite(_pinDirection, revers);
 }
 
 void Axis::step()
@@ -142,7 +166,37 @@ void Axis::calculateNewSpeed()
     _period = 1000000/_currentSpeed;
 }
 
-void Axis::home()
+void Axis::enable()
 {
+    digitalWrite( _pinEnabled, LOW);
+    if ( digitalRead(_pinEndstop) == HIGH ) {
+        _period = 1000000/_homeSpeed;
+        if ( _endstopPosition == EndstopAtMin )
+            setRevers(true);
+        else
+            setRevers(false);
+    }
+}
 
+void Axis::homeStep()
+{
+    //mb check that pin enabled
+    if ( timeCheck() ) {
+        if ( digitalRead( _pinEndstop ) == HIGH) {
+            digitalWrite(_pinPulse, HIGH);
+            digitalWrite(_pinPulse, LOW);
+        } else {
+            _isEnabled = true;
+            if ( _endstopPosition == EndstopAtMin )
+                _currentPos = 0;
+            else
+                _currentPos = _maxPos;
+        }
+    }
+}
+
+void Axis::disable() 
+{
+    digitalWrite( _pinEnabled, HIGH);
+    _isEnabled = false;
 }

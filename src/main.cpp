@@ -11,21 +11,34 @@
 const uint8_t xPulse = 2,
               xDir = 5,
               xEnable = 8,
+              xEndstop = 9,
+
               yPulse = 3,
               yDir = 6,
-              yEnable = 8;
+              yEnable = 8,
+              yEndstop = 12;
 //////////////////////////////
 
 using namespace Arduino;
 
-Axis xAxis(300,1, xPulse, xDir, xEnable, 10),
-     yAxis(300,1, yPulse, yDir, yEnable, 10);
+Axis xAxis(10, xPulse, xDir, xEnable, xEndstop, EndstopAtMax);
+Axis yAxis(10, yPulse, yDir, yEnable, yEndstop, EndstopAtMax);
 
 ComPort port;
 Camera camera(&xAxis, &yAxis);
 
 void setup()
+// int main()
 {
+    //Axis setup
+    xAxis.setMaxPos(465);
+    xAxis.setSpeed(300, 1, 20);
+
+    yAxis.setMaxPos(470);
+    yAxis.setSpeed(300, 1, 20);
+    yAxis.invertDirection();
+    /////
+
     port.init();
     port.subscribe(&camera);
     camera.setComPort(&port);
@@ -35,16 +48,19 @@ void setup()
                            delta = 0;
     while (true){
         start = micros();
+
         port.loopCheck();
         camera.loopCheck();
-        end = micros();
 
+        end = micros();
         delta = end - start;
         if ( delta > 500 ) {
-            Serial.print("loop takes: ");
+            Serial.print("lptks: ");
             Serial.println(delta);
         }
+        // delay(100);
     }
+    // return 0;
 }
 
 void loop() {}

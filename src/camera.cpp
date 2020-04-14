@@ -13,8 +13,8 @@ Camera::Camera(Axis *xAxis, Axis *yAxis)
     : _xAxis(xAxis),
       _yAxis(yAxis)
 {
-    _xAxis->setMax(450);
-    _yAxis->setMax(450);
+    _xAxis->setMaxPos(450);
+    _yAxis->setMaxPos(450);
     _positionUpdateTimer.setPeriod(500);
     _positionUpdateTimer.start();
 }
@@ -26,12 +26,6 @@ void Camera::setComPort(IComPort *comPort)
 
 void Camera::move(Point newPos)
 {
-    if ( !_isEnabled ) {
-        _isEnabled = true;
-        _xAxis->setEnabled(true);
-        _yAxis->setEnabled(true);
-    }
-
     _xAxis->move(newPos.X);
     _yAxis->move(newPos.Y);
     // Serial.println("New target received!");
@@ -65,11 +59,12 @@ Point Camera::currentPos() const
 
 void Camera::loopCheck()
 {
-    // volatile auto start = micros();
+    volatile unsigned long start, end;
+    // start = micros();
 
     _xAxis->loopCheck();
 
-    // volatile auto end = micros();
+    // end = micros();
     // Serial.print("xAxis::loopCheck takes ");
     // Serial.println(end-start);
 
