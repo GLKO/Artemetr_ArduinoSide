@@ -14,13 +14,16 @@ void ComPort::init()
 {
     Serial.end();
     Serial.begin(connnectionSpeed);
-    Serial.setTimeout(5);
+    Serial.setTimeout(100);
+    // Serial.setTimeout(0);
 }
 
 void ComPort::sendMessage(const char *msg)
 {
-    if ( _connected)
-        Serial.println(msg);
+    if ( _connected) {
+        Serial.write(msg, commandSize);
+        // Serial.write('\n');
+    }
 }
 
 const char *ComPort::readMessage()
@@ -35,7 +38,14 @@ void ComPort::loopCheck()
         if ( Serial.available() == commandSize ) {
             Serial.readBytes(message, commandSize);
             // Serial.println(message);
-            notifySubscribers();
+            if ( *message == 'C' ) {
+                _connected = false;
+                _connectionTimer.start();
+                Serial.setTimeout(100);
+            } 
+            else {
+                notifySubscribers();
+            }
         }
     } 
     else {
@@ -46,6 +56,9 @@ void ComPort::loopCheck()
                 Serial.println(connectApprove);
                 _connected = true;
                 _connectionTimer.stop();
+                while (Serial.read() != -1) 
+                {}
+                Serial.setTimeout(0);
             }
         }
     }

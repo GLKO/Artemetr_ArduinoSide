@@ -75,13 +75,19 @@ void Camera::loopCheck()
     
     if (_positionUpdateTimer.check() && _comPort)
     {
-        String message(currentPosition);
-        message += ' ';
-        message += String(_xAxis->currentPos());
-        message += ' ';
-        message += String(_yAxis->currentPos());
+        char message[commandSize] = {0};
+        *message = currentPosition;
+        int *x = reinterpret_cast<int *>(message + xPos);
+        int *y = reinterpret_cast<int *>(message + yPos);
+        *x = static_cast<int16_t>(_xAxis->currentPos());
+        *y = static_cast<int16_t>(_yAxis->currentPos());
+        // String message(currentPosition);
+        // message += ' ';
+        // message += String(_xAxis->currentPos());
+        // message += ' ';
+        // message += String(_yAxis->currentPos());
 
-        _comPort->sendMessage(message.c_str());
+        _comPort->sendMessage(message);
     }
     // end = micros();
     // Serial.print("Camera::loopCheck takes ");

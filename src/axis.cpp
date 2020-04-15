@@ -26,7 +26,12 @@ void Axis::setMaxPos(unsigned mmMaxPos)
 void Axis::setSpeed( int acceleration, int startSpeed, int homeSpeed )
 {
     _acceleration = acceleration * _stepsPerMm;
-    _startSpeed = startSpeed * _stepsPerMm;
+
+    if ( startSpeed == 0 )
+        _startSpeed = 3;
+    else
+        _startSpeed = startSpeed * _stepsPerMm;
+
     _homeSpeed = homeSpeed * _stepsPerMm;
 }
 
@@ -68,8 +73,8 @@ void Axis::loopCheck()
         return;
     }
 
-    if ( _currentPos == _targetPos ) {
-        _currentSpeed = _startSpeed;
+    if ( _currentPos == _targetPos && _currentSpeed > _startSpeed ) {
+        // _currentSpeed = _startSpeed;
         return;
     }
 
