@@ -37,7 +37,6 @@ void ComPort::loopCheck()
     if ( _connected ) {
         if ( Serial.available() == commandSize ) {
             Serial.readBytes(message, commandSize);
-            // Serial.println(message);
             if ( *message == 'C' ) {
                 _connected = false;
                 _connectionTimer.start();

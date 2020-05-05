@@ -2,6 +2,7 @@
 
 #include <icamera.h>
 #include <ATimer.h>
+#include <inttypes.h>
 
 struct Point;
 class Axis;
@@ -13,15 +14,13 @@ namespace Arduino
 class Camera : public ICamera
 {
 public:
-    Camera(Axis *xAxis, Axis *yAxis);
+    Camera(Axis *xAxis, Axis *yAxis, uint8_t pinBacklight);
     void move(Point newPos) override;
-    void moveX(int x) override;
-    void moveY(int y) override;
-    int currentX() const override;
-    int currentY() const override;
     Point currentPos() const override;
+    Point targetPos() const override;
+    void setBacklight(BacklightState state) override;
 
-    void updateSub() override;
+    void publisherUpdated() override;
 
     void setComPort(IComPort *port);
     void loopCheck();
@@ -29,6 +28,7 @@ public:
 private:
     Axis *_xAxis = nullptr,
          *_yAxis = nullptr;
+    short _pinBacklight = 0;
 
     IComPort *_comPort = nullptr;
     ATimer _positionUpdateTimer;

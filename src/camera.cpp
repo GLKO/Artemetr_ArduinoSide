@@ -9,14 +9,16 @@
 namespace Arduino
 {
 
-Camera::Camera(Axis *xAxis, Axis *yAxis)
+Camera::Camera(Axis *xAxis, Axis *yAxis, uint8_t pinBacklight)
     : _xAxis(xAxis),
-      _yAxis(yAxis)
+      _yAxis(yAxis),
+      _pinBacklight(pinBacklight)
 {
-    _xAxis->setMaxPos(450);
-    _yAxis->setMaxPos(450);
-    _positionUpdateTimer.setPeriod(500);
+    _positionUpdateTimer.setPeriod(200);
     _positionUpdateTimer.start();
+
+    pinMode(pinBacklight, OUTPUT);
+    setBacklight(Off);
 }
 
 void Camera::setComPort(IComPort *comPort)
@@ -31,24 +33,14 @@ void Camera::move(Point newPos)
     // Serial.println("New target received!");
 }
 
-void Camera::moveX(int x)
+void Camera::setBacklight(BacklightState state)
 {
-    _xAxis->move(x);
-}
-
-void Camera::moveY(int y)
-{
-    _yAxis->move(y);
-}
-
-int Camera::currentX() const
-{
-    return _xAxis->currentPos();
-}
-
-int Camera::currentY() const
-{
-    return _yAxis->currentPos();
+    if ( state == On ) {
+        digitalWrite(_pinBacklight, HIGH);
+    } else 
+    if ( state == Off ){
+        digitalWrite(_pinBacklight, LOW);
+    }
 }
 
 Point Camera::currentPos() const
@@ -57,9 +49,14 @@ Point Camera::currentPos() const
     return ret;
 }
 
+Point Camera::targetPos() const
+{
+    return Point();
+}
+
 void Camera::loopCheck()
 {
-    volatile unsigned long start, end;
+    // volatile unsigned long start, end;
     // start = micros();
 
     _xAxis->loopCheck();
@@ -76,16 +73,11 @@ void Camera::loopCheck()
     if (_positionUpdateTimer.check() && _comPort)
     {
         char message[commandSize] = {0};
-        *message = currentPosition;
-        int *x = reinterpret_cast<int *>(message + xPos);
-        int *y = reinterpret_cast<int *>(message + yPos);
+        *message = currentCamPosition;
+        int *x = reinterpret_cast<int *>(message + xPosIndex);
+        int *y = reinterpret_cast<int *>(message + yPosIndex);
         *x = static_cast<int16_t>(_xAxis->currentPos());
         *y = static_cast<int16_t>(_yAxis->currentPos());
-        // String message(currentPosition);
-        // message += ' ';
-        // message += String(_xAxis->currentPos());
-        // message += ' ';
-        // message += String(_yAxis->currentPos());
 
         _comPort->sendMessage(message);
     }
@@ -94,22 +86,20 @@ void Camera::loopCheck()
     // Serial.println(end-start);
 }
 
-void Camera::updateSub()
+void Camera::publisherUpdated()
 {
     const char *msg;
     msg = _comPort->readMessage();
 
-    if ( *msg == moveTo ) {
-        // Serial.println(command);
-        // Serial.println(firstArg);
-        // Serial.println(secondArg);
+    if ( *msg == moveCamTo ) {
         Point newPos;
-        newPos.X = *reinterpret_cast<const int *>( msg+xPos );
-        newPos.Y = *reinterpret_cast<const int *>( msg+yPos );
+        newPos.X = *reinterpret_cast<const int *>( msg+xPosIndex );
+        newPos.Y = *reinterpret_cast<const int *>( msg+yPosIndex );
         move(newPos);
-        Serial.print(newPos.X);
-        Serial.print(' ');
-        Serial.println(newPos.Y);
+    } else
+    if ( *msg == setBacklightState ) {
+        BacklightState state = *reinterpret_cast<const BacklightState*>( msg+backlightStateIndex );
+        setBacklight(state);
     }
     // volatile auto end = micros();
     // Serial.print("ComPort::loopCheck takes ");

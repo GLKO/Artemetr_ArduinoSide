@@ -2,7 +2,7 @@
 #include <math.h>
 #include <Arduino.h>
 
-Axis::Axis( short stepsPerMm, short pinPulse, short pinDirection, short pinEnabled, short pinEndstop, EndstopPosition endstopPos )
+Axis::Axis( short stepsPerMm, uint8_t pinPulse, uint8_t pinDirection, uint8_t pinEnabled, uint8_t pinEndstop, EndstopPosition endstopPos )
     :_pinPulse(pinPulse),
     _pinDirection(pinDirection),
     _pinEnabled(pinEnabled),
@@ -63,7 +63,10 @@ void Axis::move(uint32_t newPos)
 
 int Axis::currentPos()
 {
-    return _currentPos / _stepsPerMm;
+    if ( _isEnabled )
+        return _currentPos / _stepsPerMm;
+    else
+        return -1;
 }
 
 void Axis::loopCheck()
@@ -73,8 +76,8 @@ void Axis::loopCheck()
         return;
     }
 
-    if ( _currentPos == _targetPos && _currentSpeed > _startSpeed ) {
-        // _currentSpeed = _startSpeed;
+    if ( _currentPos == _targetPos  ) { //&& _currentSpeed < _startSpeed
+        _currentSpeed = _startSpeed;
         return;
     }
 

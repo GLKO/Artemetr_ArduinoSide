@@ -6,7 +6,7 @@ enum EndstopPosition { EndstopAtMin, EndstopAtMax };
 class Axis 
 {
 public:
-    Axis(short stepsPerMm, short pinPulse, short pinDirection, short pinEnabled, short pinEndstop, EndstopPosition endstopPos);
+    Axis(short stepsPerMm, uint8_t pinPulse, uint8_t pinDirection, uint8_t pinEnabled, uint8_t pinEndstop, EndstopPosition endstopPos);
     void setMaxPos(unsigned mmMaxPos);
     void setSpeed(int acceleration, int startSpeed, int homeSpeed);
     void invertDirection();
@@ -56,4 +56,7 @@ private:
     EndstopPosition _endstopPosition = EndstopAtMin;
     unsigned long _maxPos = 0;
     ////////////////////////
+
+    // static bool periodsReady;
+    // static unsigned period[400];
 };
