@@ -7,6 +7,7 @@
 #include "comport.h"
 #include "camera.h"
 #include "axis.h"
+#include "pump.h"
 
 ///// -- HARDWARE SETUP -- /////
 const uint8_t xPulse = 2,
@@ -19,7 +20,10 @@ const uint8_t xPulse = 2,
               yEnable = 8,
               yEndstop = 12,
 
-              backlight = 10;
+              backlight = 10,
+
+              iodinePumpPin = 11,
+              chlorinePumpPin = 4;
 //////////////////////////////
 
 using namespace Arduino;
@@ -29,6 +33,10 @@ Axis yAxis(10, yPulse, yDir, yEnable, yEndstop, EndstopAtMax);
 
 ComPort port;
 Camera camera(&xAxis, &yAxis, backlight);
+
+Pump iodinePump(iodinePumpSign, iodinePumpPin, &port);
+Pump chlorinePump(chlorinePumpSign, iodinePumpPin, &port);
+
 
 void setup()
 // int main()
@@ -44,6 +52,8 @@ void setup()
 
     port.init();
     port.subscribe(&camera);
+    port.subscribe(&iodinePump);
+    port.subscribe(&chlorinePump);
     camera.setComPort(&port);
 
     // volatile unsigned long start = 0,
@@ -53,7 +63,13 @@ void setup()
         // start = micros();
 
         port.loopCheck();
-        camera.loopCheck();
+
+        if ( iodinePump.isBusy() || chlorinePump.isBusy() ) 
+        {
+            iodinePump.loop();
+            chlorinePump.loop();
+        } 
+        else camera.loopCheck();
 
         // end = micros();
         // delta = end - start;
