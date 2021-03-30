@@ -1,7 +1,7 @@
 #pragma once
 
 #include <icomport.h>
-#include <ATimer.h>
+#include <UniversalTimer.h>
 #include <keywords.h>
 
 namespace Arduino {
@@ -19,7 +19,7 @@ public:
 
 private:
     bool _connected = false;
-    ATimer _connectionTimer;
+    UniversalTimer _connectionTimer;
     char message[commandSize] = {0};
 };
 

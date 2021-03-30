@@ -5,8 +5,8 @@ namespace Arduino
 {
 
 ComPort::ComPort()
+    : _connectionTimer(1000)
 {
-    _connectionTimer.setPeriod(1000);
     _connectionTimer.start();
 }
 
@@ -48,7 +48,7 @@ void ComPort::loopCheck()
         }
     } 
     else {
-        if (_connectionTimer.check() ) {
+        if (_connectionTimer.timeout() ) {
             Serial.println(movingCamId);
 
             if (Serial.find(connectRequest)){

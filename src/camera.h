@@ -1,7 +1,7 @@
 #pragma once
 
 #include <icamera.h>
-#include <ATimer.h>
+#include <UniversalTimer.h>
 #include <inttypes.h>
 
 struct Point;
@@ -31,7 +31,7 @@ private:
     short _pinBacklight = 0;
 
     IComPort *_comPort = nullptr;
-    ATimer _positionUpdateTimer;
+    UniversalTimer _positionUpdateTimer;
 };
 
 } // namespace Arduino

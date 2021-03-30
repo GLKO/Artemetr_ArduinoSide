@@ -12,9 +12,9 @@ namespace Arduino
 Camera::Camera(Axis *xAxis, Axis *yAxis, uint8_t pinBacklight)
     : _xAxis(xAxis),
       _yAxis(yAxis),
-      _pinBacklight(pinBacklight)
+      _pinBacklight(pinBacklight),
+      _positionUpdateTimer(200)
 {
-    _positionUpdateTimer.setPeriod(200);
     _positionUpdateTimer.start();
 
     pinMode(pinBacklight, OUTPUT);
@@ -70,7 +70,7 @@ void Camera::loopCheck()
     // return;
     // start = micros();
     
-    if (_positionUpdateTimer.check() && _comPort)
+    if (_positionUpdateTimer.timeout() && _comPort)
     {
         char message[commandSize] = {0};
         *message = currentCamPosition;
