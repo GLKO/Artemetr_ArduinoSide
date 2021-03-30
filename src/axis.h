@@ -43,7 +43,7 @@ private:
     void enable();
     void homeStep();
     void disable();
-    bool _isEnabled = false;
+    bool _isEnabled = true;
     unsigned long _homeSpeed = 0;
 
 
