@@ -35,7 +35,7 @@ ComPort port;
 Camera camera(&xAxis, &yAxis, backlight);
 
 Pump iodinePump(iodinePumpSign, iodinePumpPin, &port);
-Pump chlorinePump(chlorinePumpSign, iodinePumpPin, &port);
+Pump chlorinePump(chlorinePumpSign, chlorinePumpPin, &port);
 
 
 void setup()
